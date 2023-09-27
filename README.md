@@ -22,7 +22,7 @@ During the 3 hours in the lab, you want to utilize this time to test your code, 
 While in-lab, you are required to use the Desktop PCs and **NOT** your personal setup (VMWare, remote desktop, lent laptop). So, make sure that you have your modified files, either online or on a USB, with you to try it out in-lab.
 
 ## Part 1 - Connect to the robot (5 marks)
-Open the connectToUWtb4s.md markdown file in the main branch, and follow along. Read and follow each step carefully. Wait for TA approval before going to next step.
+Open the `connectToUWtb4s.md` markdown file in the main branch, and follow along. Read and follow each step carefully. Wait for TA approval before going to next step.
 
 ## Part 2 - Play with the robot (5 marks)
 
