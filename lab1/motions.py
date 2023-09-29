@@ -42,9 +42,8 @@ class motion_executioner(Node):
         
         # TODO Part 3: Create the QoS profile by setting the proper parameters in (...)
         qos=QoSProfile(
-            reliability=rqos.QoSReliabilityPolicy.RELIABLE,
-            durability=rqos.QoSDurabilityPolicy.TRANSIENT_LOCAL,
-            history=rqos.QoSHistoryPolicy.KEEP_LAST,
+            reliability=rqos.QoSReliabilityPolicy.BEST_EFFORT,
+            durability=rqos.QoSDurabilityPolicy.VOLATILE,
             depth=10,
         )
 
@@ -54,8 +53,8 @@ class motion_executioner(Node):
 
         self.enc_sub = self.create_subscription(Odometry, '/odom', self.odom_callback, qos)
         
-        self.laser_sub = self.create_subscription(LaserScan, '/scan', self.laser_callback, qos)
-        
+        self.laser_sub = self.create_subscription(LaserScan, '/scan', self.laser_callback, 10)
+        self.speed=0.0
         self.create_timer(0.1, self.timer_callback)
 
 
@@ -63,16 +62,29 @@ class motion_executioner(Node):
     # You can save the needed fields into a list, and pass the list to the log_values function in utilities.py
 
     def imu_callback(self, imu_msg: Imu):
-        self.imu_logger.log_values(imu_msg)
-        ...    # log imu msgs
+        self.imu_initialized = True
+        self.imu_logger.log_values([
+            imu_msg.linear_acceleration.x,
+            imu_msg.linear_acceleration.y,
+            imu_msg.angular_velocity.z,
+            imu_msg.header.stamp.sec + imu_msg.header.stamp.nanosec * 1e-9,
+        ])
         
     def odom_callback(self, odom_msg: Odometry):
-        self.odom_logger.log_values(odom_msg)
-        ... # log odom msgs
+        self.odom_initialized = True
+        self.odom_logger.log_values([
+            odom_msg.pose.pose.position.x,
+            odom_msg.pose.pose.position.y,
+            euler_from_quaternion(odom_msg.pose.pose.orientation),
+            odom_msg.header.stamp.sec + odom_msg.header.stamp.nanosec * 1e-9,
+        ])
                 
     def laser_callback(self, laser_msg: LaserScan):
-        self.laser_logger.log_values(laser_msg)
-        ... # log laser msgs with position msg at that time
+        self.laser_initialized = True
+        self.laser_logger.log_values([
+            laser_msg.ranges,
+            laser_msg.header.stamp.sec + laser_msg.header.stamp.nanosec * 1e-9,
+        ])
                 
     def timer_callback(self):
         
@@ -105,22 +117,22 @@ class motion_executioner(Node):
     def make_circular_twist(self):
         
         msg=Twist()
-        msg.linear.x = 1
-        msg.angular.z = 1
+        msg.linear.x = 1.
+        msg.angular.z = 1.
 
         return msg
 
     def make_spiral_twist(self):
         msg=Twist()
-        ## TODO: This probably cant be a constant value
-        # msg.linear.x = 
-        # msg.angular.z = 
+        self.speed+=0.005
+        msg.linear.x = self.speed
+        msg.angular.z = 1.0
 
         return msg
     
     def make_acc_line_twist(self):
         msg=Twist()
-        msg.linear.x = 2
+        msg.linear.x = 1.
 
         return msg
 

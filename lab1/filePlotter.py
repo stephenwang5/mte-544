@@ -6,14 +6,14 @@
 
 
 import matplotlib.pyplot as plt
-from utilities import fileReader
+from utilities import FileReader
 
 
 
 
 def plot_errors(filename):
     
-    headers, values=fileReader(filename).read_file()
+    headers, values=FileReader(filename).read_file()
         
     
     time_list=[]
