@@ -32,7 +32,7 @@ class motion_executioner(Node):
         self.odom_initialized=False
         self.laser_initialized=False
         
-        # TODO Part 3: Create a publisher to send velocity commands by setting the proper parameters in (...)
+        # Part 3: publisher to send velocity commands by setting the proper parameters
         self.vel_publisher=self.create_publisher(Twist, '/cmd_vel', 10)
                 
         # loggers
@@ -40,25 +40,28 @@ class motion_executioner(Node):
         self.odom_logger=Logger('odom_content_'+str(motion_types[motion_type])+'.csv', headers=["x","y","th", "stamp"])
         self.laser_logger=Logger('laser_content_'+str(motion_types[motion_type])+'.csv', headers=["ranges", "stamp"])
         
-        # TODO Part 3: Create the QoS profile by setting the proper parameters in (...)
+        # Part 3: QoS profile by setting the proper parameters - verified that the reliability/durability is correct
         qos=QoSProfile(
             reliability=rqos.QoSReliabilityPolicy.BEST_EFFORT,
             durability=rqos.QoSDurabilityPolicy.VOLATILE,
             depth=10,
         )
 
-        # TODO Part 5: Create below the subscription to the topics corresponding to the respective sensors
+        # Part 5: subscription to the topics corresponding to the respective sensors
         
+        # IMU subscription
         self.imu_sub = self.create_subscription(Imu, '/imu', self.imu_callback, qos)
-
+        # ENCODER subscription
         self.enc_sub = self.create_subscription(Odometry, '/odom', self.odom_callback, qos)
-        
+        # LaserScan subscription 
         self.laser_sub = self.create_subscription(LaserScan, '/scan', self.laser_callback, 10)
+
+        # Initial value of the robot
         self.speed=0.0
         self.create_timer(0.1, self.timer_callback)
 
 
-    # TODO Part 5: Callback functions: complete the callback functions of the three sensors to log the proper data.
+    # Part 5: Callback functions: complete the callback functions of the three sensors to log the proper data.
     # You can save the needed fields into a list, and pass the list to the log_values function in utilities.py
 
     def imu_callback(self, imu_msg: Imu):
@@ -68,7 +71,7 @@ class motion_executioner(Node):
             imu_msg.linear_acceleration.y,
             imu_msg.angular_velocity.z,
             imu_msg.header.stamp.sec + imu_msg.header.stamp.nanosec * 1e-9,
-        ])
+        ]) # log imu msgs
         
     def odom_callback(self, odom_msg: Odometry):
         self.odom_initialized = True
@@ -77,14 +80,14 @@ class motion_executioner(Node):
             odom_msg.pose.pose.position.y,
             euler_from_quaternion(odom_msg.pose.pose.orientation),
             odom_msg.header.stamp.sec + odom_msg.header.stamp.nanosec * 1e-9,
-        ])
+        ]) # log odom msgs
                 
     def laser_callback(self, laser_msg: LaserScan):
         self.laser_initialized = True
         self.laser_logger.log_values([
             laser_msg.ranges,
             laser_msg.header.stamp.sec + laser_msg.header.stamp.nanosec * 1e-9,
-        ])
+        ]) # log laser msgs with position msg at that time
                 
     def timer_callback(self):
         
@@ -112,11 +115,12 @@ class motion_executioner(Node):
         self.vel_publisher.publish(cmd_vel_msg)
         
     
-    # TODO Part 4: Motion functions: complete the functions to generate the proper messages corresponding to the desired motions of the robot
+    # Part 4: Motion functions: complete the functions to generate the proper messages corresponding to the desired motions of the robot
 
     def make_circular_twist(self):
-        
         msg=Twist()
+
+        # constant linear veloity + constant angular velocity = circular motion
         msg.linear.x = 1.
         msg.angular.z = 1.
 
@@ -124,14 +128,20 @@ class motion_executioner(Node):
 
     def make_spiral_twist(self):
         msg=Twist()
+
+        # increase linear speed at each timer callback (0.1 seconds)
         self.speed+=0.005
         msg.linear.x = self.speed
+        # keep angular velocity constant with increasing linear velocity to create spiral motion
         msg.angular.z = 1.0
 
         return msg
     
     def make_acc_line_twist(self):
         msg=Twist()
+
+        # constant linear velocity with 0 angular velocity creates straight line motion
+        # from instructions, it was assumed that this straight line did not need to accelerate as there was no specification
         msg.linear.x = 1.
 
         return msg
