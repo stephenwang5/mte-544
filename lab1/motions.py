@@ -141,6 +141,7 @@ class motion_executioner(Node):
         msg=Twist()
 
         # constant linear velocity with 0 angular velocity creates straight line motion
+        # from instructions, it was assumed that this straight line did not need to accelerate as there was no specification
         msg.linear.x = 1.
 
         return msg
