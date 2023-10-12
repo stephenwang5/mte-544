@@ -7,7 +7,7 @@ img {
   margin-left: auto;
   margin-right: auto;
   max-height: 180px;
-  max-width: 80%;
+  max-width: 100%;
 }
 h1 {
   text-align: center;
