@@ -1,3 +1,7 @@
 *.csv
 __pycache__
 .ipynb*
+.DS_Store
+*.zip
+*.html
+assignments
