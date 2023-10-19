@@ -13,11 +13,20 @@ class localization(Node):
 
         super().__init__("localizer")
         
-        # TODO Part 3: Define the QoS profile variable based on whether you are using the simulation (Turtlebot 3 Burger) or the real robot (Turtlebot 4)
+        # Part 3: Define the QoS profile variable based on whether you are using the simulation (Turtlebot 3 Burger) or the real robot (Turtlebot 4)
         # Remember to define your QoS profile based on the information available in "ros2 topic info /odom --verbose" as explained in Tutorial 3
 
+        # TODO: Determine how to differentiate these 
+        #TB4
         odom_qos=QoSProfile(
             reliability=rclpy.qos.QoSReliabilityPolicy.BEST_EFFORT,
+            durability=rclpy.qos.QoSDurabilityPolicy.VOLATILE,
+            depth=10,
+        )
+        
+        #TB3 Burger
+        odom_qos=QoSProfile(
+            reliability=rclpy.qos.QoSReliabilityPolicy.RELIABLE,
             durability=rclpy.qos.QoSDurabilityPolicy.VOLATILE,
             depth=10,
         )
@@ -25,19 +34,17 @@ class localization(Node):
         self.loc_logger=Logger("robot_pose.csv", ["x", "y", "theta", "stamp"])
         self.pose=None
         
-        # TODO Part 3: subscribe to the position sensor topic (Odometry)
-        self.enc_sub = self.create_subscription(
-            odom, '/odom', self.odom_callback, odom_qos)
+        # Part 3: subscribe to the position sensor topic (Odometry)
+        self.enc_sub = self.create_subscription(odom, '/odom', self.odom_callback, odom_qos)
     
-    
-    def odom_callback(self, pose_msg):
+    def odom_callback(self, pose_msg: odom):
         
-        # TODO Part 3: Read x,y, theta, and record the stamp
-        self.pose=[
+        # Part 3: Read x,y, theta, and record the stamp
+        self.pose=[ 
             pose_msg.pose.pose.position.x,
             pose_msg.pose.pose.position.y,
             euler_from_quaternion(pose_msg.pose.pose.orientation),
-            pose_msg.header.stamp,
+            pose_msg.header.stamp.sec + pose_msg.header.stamp.nanosec * 1e-9
         ]
         
         # Log the data

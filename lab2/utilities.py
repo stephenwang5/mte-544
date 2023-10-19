@@ -101,7 +101,7 @@ def calculate_linear_error(current_pose: list, goal_pose: list):
     # Remember to use the Euclidean distance to calculate the error.
     x_diff = current_pose[0] - goal_pose[0]
     y_diff = current_pose[1] - goal_pose[1]
-    error_linear= (x_diff**2 + y_diff**2)**0.5
+    error_linear= sqrt(x_diff**2 + y_diff**2)
 
     return error_linear
 
