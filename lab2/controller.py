@@ -15,6 +15,7 @@ SATURATION_ANG_TB3 = 2.84 # rad/s
 SATURATION_LIN_TB4 = 0.31 # m/s
 SATURATION_ANG_TB4 = 1.90 # rad/s
 
+# TODO: Make sure to update this in Lab
 SATURATION_LIN = SATURATION_LIN_TB3
 SATURATION_ANG = SATURATION_ANG_TB3
 class controller:
@@ -38,8 +39,8 @@ class controller:
         angular_vel=self.PID_angular.update([e_ang, pose[3]], status)
         
         # Part 4: Add saturation limits for the robot linear and angular velocity
-        linear_vel = SATURATION_LIM if linear_vel  > SATURATION_LIM else linear_vel
-        angular_vel= SATURATION_LIM if angular_vel > SATURATION_LIM else angular_vel
+        linear_vel = SATURATION_LIN if linear_vel  > SATURATION_LIN else linear_vel
+        angular_vel= SATURATION_ANG if angular_vel > SATURATION_ANG else angular_vel
         
         return linear_vel, angular_vel
     
@@ -64,9 +65,9 @@ class trajectoryController(controller):
         linear_vel=self.PID_linear.update([e_lin, pose[3]], status)
         angular_vel=self.PID_angular.update([e_ang, pose[3]], status) 
 
-        # TODO Part 4: Add saturation limits for the robot linear and angular velocity
-        linear_vel = SATURATION_LIM if linear_vel  > SATURATION_LIM else linear_vel
-        angular_vel= SATURATION_LIM if angular_vel > SATURATION_LIM else angular_vel
+        # Part 4: Add saturation limits for the robot linear and angular velocity
+        linear_vel = SATURATION_LIN if linear_vel  > SATURATION_LIN else linear_vel
+        angular_vel= SATURATION_ANG if angular_vel > SATURATION_ANG else angular_vel
         
         return linear_vel, angular_vel
 
