@@ -26,13 +26,19 @@ class localization(Node):
         self.pose=None
         
         # TODO Part 3: subscribe to the position sensor topic (Odometry)
-        self.enc_sub = self.create_subscription(odom, '/odom', self.odom_callback, odom_qos)
+        self.enc_sub = self.create_subscription(
+            odom, '/odom', self.odom_callback, odom_qos)
     
     
     def odom_callback(self, pose_msg):
         
         # TODO Part 3: Read x,y, theta, and record the stamp
-        self.pose=[ ... ]
+        self.pose=[
+            pose_msg.pose.pose.position.x,
+            pose_msg.pose.pose.position.y,
+            euler_from_quaternion(pose_msg.pose.pose.orientation),
+            pose_msg.header.stamp,
+        ]
         
         # Log the data
         self.loc_logger.log_values([self.pose[0], self.pose[1], self.pose[2], Time.from_msg(self.pose[3]).nanoseconds])
@@ -43,4 +49,6 @@ class localization(Node):
 # Part 3
 # Here put a guard that makes the node run, ONLY when run as a main thread!
 if __name__ == "__main__":
+    init()
     LE = localization()
+    spin()

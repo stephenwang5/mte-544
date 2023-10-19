@@ -83,7 +83,6 @@ class FileReader:
     
     
 
-# Part 3: Implement the conversion from Quaternion to Euler Angles
 def euler_from_quaternion(quat):
     """
     Convert quaternion (w in last place) to euler roll, pitch, yaw.
