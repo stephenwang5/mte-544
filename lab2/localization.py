@@ -1,3 +1,5 @@
+import sys
+
 from utilities import Logger, euler_from_quaternion
 from rclpy.time import Time
 from rclpy.node import Node
@@ -7,9 +9,12 @@ from nav_msgs.msg import Odometry as odom
 
 from rclpy import init, spin
 
+import rclpy
+
+rawSensor = 0
 class localization(Node):
     
-    def __init__(self):
+    def __init__(self, localizationType=rawSensor):
 
         super().__init__("localizer")
         
@@ -17,12 +22,12 @@ class localization(Node):
         # Remember to define your QoS profile based on the information available in "ros2 topic info /odom --verbose" as explained in Tutorial 3
 
         # TODO: Determine how to differentiate these 
-        #TB4
-        odom_qos=QoSProfile(
-            reliability=rclpy.qos.QoSReliabilityPolicy.BEST_EFFORT,
-            durability=rclpy.qos.QoSDurabilityPolicy.VOLATILE,
-            depth=10,
-        )
+        # #TB4
+        # odom_qos=QoSProfile(
+        #     reliability=rclpy.qos.QoSReliabilityPolicy.BEST_EFFORT,
+        #     durability=rclpy.qos.QoSDurabilityPolicy.VOLATILE,
+        #     depth=10,
+        # )
         
         #TB3 Burger
         odom_qos=QoSProfile(
@@ -34,8 +39,11 @@ class localization(Node):
         self.loc_logger=Logger("robot_pose.csv", ["x", "y", "theta", "stamp"])
         self.pose=None
         
+        if localizationType == rawSensor:
         # Part 3: subscribe to the position sensor topic (Odometry)
-        self.enc_sub = self.create_subscription(odom, '/odom', self.odom_callback, odom_qos)
+            self.enc_sub = self.create_subscription(odom, '/odom', self.odom_callback, odom_qos)
+        else:
+            print("This type doesn't exist", sys.stderr)
     
     def odom_callback(self, pose_msg: odom):
         
@@ -44,7 +52,8 @@ class localization(Node):
             pose_msg.pose.pose.position.x,
             pose_msg.pose.pose.position.y,
             euler_from_quaternion(pose_msg.pose.pose.orientation),
-            pose_msg.header.stamp.sec + pose_msg.header.stamp.nanosec * 1e-9
+            # pose_msg.header.stamp.sec + pose_msg.header.stamp.nanosec * 1e-9
+            pose_msg.header.stamp
         ]
         
         # Log the data
