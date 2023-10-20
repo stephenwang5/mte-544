@@ -1,0 +1,13 @@
+version: "3.10"
+services:
+  sim:
+    build:
+      context: ./
+      dockerfile: ./docker/sim.Dockerfile
+    volumes:
+      - ./lab2:/home/default-user/ws/src
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    environment:
+      - DISPLAY=:1
+    runtime: nvidia
+    command: /idle.bash

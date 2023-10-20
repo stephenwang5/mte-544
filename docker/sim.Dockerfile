@@ -9,15 +9,9 @@ RUN apt-get update && \
     wget \
     tmux
 
-RUN echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list && \
-    wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add - && \
-    apt-get install -y --no-install-recommends \
-    gazebo11
-
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    python3-catkin-tools \
-    ros-noetic-moveit
+    ros-humble-turtlebot3*
 
 COPY --chmod=755 docker/idle.bash /idle.bash
 COPY docker/.tmux.conf /home/default-user/.tmux.conf
@@ -28,6 +22,3 @@ USER default-user
 RUN mkdir -p /home/default-user/ws/src
 
 WORKDIR /home/default-user/ws
-COPY catkin_ws src
-RUN rosdep update && \
-    rosdep install -y -i --from-paths src
