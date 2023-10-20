@@ -23,18 +23,18 @@ class localization(Node):
 
         # TODO: Determine how to differentiate these 
         # #TB4
-        # odom_qos=QoSProfile(
-        #     reliability=rclpy.qos.QoSReliabilityPolicy.BEST_EFFORT,
-        #     durability=rclpy.qos.QoSDurabilityPolicy.VOLATILE,
-        #     depth=10,
-        # )
-        
-        #TB3 Burger
         odom_qos=QoSProfile(
-            reliability=rclpy.qos.QoSReliabilityPolicy.RELIABLE,
+            reliability=rclpy.qos.QoSReliabilityPolicy.BEST_EFFORT,
             durability=rclpy.qos.QoSDurabilityPolicy.VOLATILE,
             depth=10,
         )
+        
+        #TB3 Burger
+        # odom_qos=QoSProfile(
+        #     reliability=rclpy.qos.QoSReliabilityPolicy.RELIABLE,
+        #     durability=rclpy.qos.QoSDurabilityPolicy.VOLATILE,
+        #     depth=10,
+        # )
         
         self.loc_logger=Logger("robot_pose.csv", ["x", "y", "theta", "stamp"])
         self.pose=None
@@ -67,4 +67,4 @@ class localization(Node):
 if __name__ == "__main__":
     init()
     LE = localization()
-    spin()
+    spin(LE)

@@ -21,9 +21,12 @@ from controller import controller, trajectoryController
 # You may add any other imports you may need/want to use below
 import rclpy
 
-THRESHOLD = 0.005
+THRESHOLD = 0.1
 THRESHOLD_LIN = THRESHOLD
 THRESHOLD_ANG = THRESHOLD
+
+# goalPoint = [-1.0, -1.0, 0.0]
+goalPoint = [-2.5, 0, 0.0]
 
 class decision_maker(Node):
     
@@ -40,16 +43,15 @@ class decision_maker(Node):
         # TODO Part 5: Tune your parameters here
     
         if motion_type == POINT_PLANNER:
-            self.controller=controller(klp = 3.0,
-                                       klv = 1.0,
-                                       kli = 0.01,
+            self.controller=controller(klp = 1.0,
+                                       klv = 0.1,
+                                       kli = 0.1,
                                     #    klv = 1.25*0.8, 
                                     #    kli = 0.25*0.8,
 
-                                       kap = 2.25,
-                                       kav = 0.5,
-                                    #    kav = 0.72,
-                                       kai = 0.01
+                                       kap = 1.,
+                                       kav = 0.3,
+                                       kai = 0.1,
                                     )
             self.planner=planner(POINT_PLANNER)
             self.goal=self.planner.plan(goalPoint)
@@ -64,6 +66,15 @@ class decision_maker(Node):
                                                  kav=0.5, 
                                                  kai=0.01
                                                 )
+
+            # self.controller=trajectoryController(klp=0.2, 
+            #                             klv=0.2, 
+            #                             kli=0.2,
+
+            #                             kap=0.2, 
+            #                             kav=0.2, 
+            #                             kai=0.2
+            #                         )
             self.planner=planner(TRAJECTORY_PLANNER)
             self.goal=self.planner.plan()
 
@@ -164,7 +175,7 @@ def main(args=None):
             publisher_msg=Twist, 
             publishing_topic='/cmd_vel', 
             qos_publisher=odom_qos, 
-            goalPoint=[-1.0, -1.0, 0.0], # TODO: Is this hardcoded 
+            goalPoint=goalPoint, # TODO: Is this hardcoded 
             rate=10,
             motion_type= POINT_PLANNER
         )
@@ -173,7 +184,7 @@ def main(args=None):
             publisher_msg=Twist, 
             publishing_topic='/cmd_vel', 
             qos_publisher=odom_qos, 
-            goalPoint=[-1.0, -1.0, 0.0], # TODO: Is this hardcoded 
+            goalPoint=goalPoint, # TODO: Is this hardcoded 
             rate=10,
             motion_type= TRAJECTORY_PLANNER
         )
