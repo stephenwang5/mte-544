@@ -6,8 +6,9 @@ img {
   display: table-cell;
   margin-left: auto;
   margin-right: auto;
-  max-height: 180px;
+  max-height: 280px;
   max-width: 100%;
+  min-width: 50%;
 }
 h1 {
   text-align: center;
