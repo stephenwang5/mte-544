@@ -13,6 +13,9 @@ img {
 h1 {
   text-align: center;
 }
+.jp-CodeCell {
+  --jp-cell-padding: 0px;
+}
 </style>
 {{ super() }}
 {% endblock html_head %}
