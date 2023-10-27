@@ -5,3 +5,4 @@ __pycache__
 *.zip
 *.html
 assignments
+.virtual_documents
