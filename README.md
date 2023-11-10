@@ -1,32 +1,145 @@
-# MTE544 - Autonomous Mobile Robots - Setup
-
-## Install pre-requisites of the course
-If you have not installed Ubuntu 22.04 yet, please do that first.
-Download the script (or if you installed ```git```, clone this repository with ```git clone https://github.com/aalghooneh/MTE544_student```, then change the branch to ```setup``` with ```git checkout setup```)
-
-Run the script (it needs sudo privilege, so you will need to type in your password when prompted):
-```
-sh setup_mte544.sh
-```
-that will take care of installing everything you need for this course, including setting up some environmental variables.
-
-## Check your installation
-Once the script has finished the installation, you can quickly check the performance of your system with the Gazebo simulation. Open a terminal and run:
-```
-ros2 launch turtlebot3_gazebo turtlebot3_house.launch.py
-``` 
-At the bottom of the Gazebo window, you will see the ```Real time factor```, if this number is below 0.5 (assuming you are not running anything else heavy on your VM or on your computer), this emans that your simulation will likely be quite slow, and you may want to consider utilizing one of the alternative systems proposed (you may still use your system for code development and connecting with the real robot, just the testing in simulation might be slow).
-
+# LAB 3 - Localization
 
 ## To check the latency of the topics in TurtleBot4s
 NOTE: This part may be needed when you will be using the physical robot to check the latency in the communications.
 
-Use the Latency check script like this:
+Welcome to LAB 3 of the mobile robotics course! 
+In this lab, participants will gain experience with utilizing sensor data to perform localization via state estimation.
+
+In this lab, you will implement the Extended Kalman Filter (EKF). The TA will show (or has already shown) you the implementation of the Particle Filter, as this part is more complex and time allocated to the lab is unlikely sufficient to complete it. Part of the code is provided in this repository (```likelihood_field.py```) but you are not requested to test it for the report. You are welcome to use it on your own.
+
+By the end of this lab, participants will be able to:
+- Use an Extended Kalman Filter to localize in real-time a mobile robot using sensor data.
+
+*Part 1* and *Part 2* are the same as in the previous labs they are here just for your convenience.
+
+
+#### The summary of what you should learn is as following:
+- You will learn how to derive the needed matrices and perform localization using an EKF by using IMU and wheel encoders.
+
+**NOTE** this Lab builds on top of Lab 2. A complete solution to Lab 2 is provided within this lab so that even if you did not conclude Lab 2's implementation, you can still work on Lab 3. You are welcome to replace some of the code with your own development from Lab 2.
+
+Check ```rubrics.md``` for the grading scheme of this lab.
+
+### NOTES for pre-lab activities
+Given the limited time in the lab, it is highly recommended to go through this manual and start (or complete) your implementation before the lab date, by working on your personal setup (VMWare, remote desktop, lent laptop), and using simulation for testing when needed to verify that your codes are working before coming into the lab. For simulation, refer to `tbt3Simulation.md` in the `main` branch.
+
+During the 3 hours in the lab, you want to utilize this time to test your code, work with the actual robot, get feedback from the TAs, and acquire the in-lab marks (check `rubrics.md` in the same branch).
+
+While in-lab, you are required to use the Desktop PCs and **NOT** your personal setup (VMWare, remote desktop, lent laptop). So, make sure that you have your modified files, either online or on a USB, with you to try it out in-lab. 
+
+## Part 1 - connecting to the robot (no marks)
+Open the [connectToUWtb4s.md](https://github.com/aalghooneh/MTE544_student/blob/main/connectToUWtb4s.md) markdown file in the main branch, and follow along. Read and follow each step carefully.
+
+## Part 2 - Robot teleop (no marks)
+
+In this part, you will learn to play with the robot; you will get to undock it from the charger and then move it around by keyboard.  
+When you want to dock it again, It should be able to find it only when it is in less than ~0.5 meter around it. Note, that it doesn't
+necessarily goes to the dock that it was undocked from, it will just find the next available dock.
+
+The undock command goes through a [action server](https://docs.ros.org/en/humble/Tutorials/Intermediate/Writing-an-Action-Server-Client/Cpp.html).
 
 ```
-./latency_check.py topic msgType
-# for example for scan topic
-./latency_check.py /scan LaserScan 
+ros2 action send_goal /undock irobot_create_msgs/action/Undock {}
+```
+You robot should undock.
+If not, revisit *Part 1* - Connect to robot via VPN, and make sure the VPN terminal is still running and that you can still see the robot's topics. If you suspect the vpn isn't working, make sure you terminate it, and then run again.
+
+Next run the teleop command to be able to move the robot manually around.
+
+```
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
 ```
 
+See the prompt for help on the keys. 
 
+To dock the robot, use:
+
+```
+ros2 action send_goal /dock irobot_create_msgs/action/Dock {}
+```
+
+## NOTE: when you open a new terminal, you need to source again and set the domain ID, or you will not see the topics:
+
+- Source the .bashrc file: source ~/robohub/turtlebot4/configs/.bashrc
+- Declare ros2 domain: export ROS_DOMAIN_ID=X (X being the number of your robot)
+
+## Part 3 - Implement the Extended Kalman Filter (EKF) (40 marks)
+For the implementation of the EKF, you will use the following sensor data to localize the robot:
+- IMU;
+- Odometry (as we do not have direct access to wheel encoders on TurtleBot4).
+  
+The structure of the code is basically the same as the one from LAB-2, but the localization is based on EKF instead of using raw data. See comment in ```decisions.py```.
+
+The estimation algorithm is implemented in ```kalman_filter.py``` and is used in ```localization.py```, which is then used by ```decisions.py```.
+
+The algorithm of the EKF implemented in ```kalman_filter.py``` is as follows (note that the notation is a bit different than the lecture slides):
+
+```
+Prediction step:
+x = f(x, u) // This is the motion model function
+P = A*P*A' + Q // note that Q is the covariance matrix of the states
+```
+
+```
+Update step:
+
+S = C*P*C' + R // note that R is the covariance matrix of the measurements
+K = P*C'*inv(S)
+Y_bar = z - h(x) // h is the measurement function
+x = x + K*Y_bar
+P = (1 - K*C)*P
+```
+
+For the estimation, you can use:
+- As state vector ```x = [x,y,th,w,v,vdot]```
+- As measurements, data from odometry and IMU ```z = [v,w,ax,ay]```. 
+
+Derive the necessary equations and matrices for the process model and measurement model to complete the EKF implementation.
+
+For this part:
+- Follow the comments in ```kalman_filter.py```to implement the EKF with all necessarily quantities and matrices.
+- Comment the code in ```kalman_filter.py```, explaining what the code does and what is the role of each matrix and function in the code; 
+- Follow the comments in ```localization.py``` to complete the implementation of the EKF for the robots using IMU and odom by deriving all necessary matrices and functions in ```initKalmanfilter``` and complete the steps in ```fusion_callback```.
+
+## Part 4 - Test the EKF implementation (20 marks)
+After you've finished the implementation of the EKF, you can proceed with testing your localization:
+- Spiral motion (use this motion to tune your EKF);
+- The point controller;
+If you want, in addition, you can also test with the other trajectories provided (or the ones you implemented in Lab-2 - this is optional).
+
+In testing your code, make sure to try different values for the covariance matrices and log the data accordingly. How do they influence the estimation?
+
+You can start with Q = 0.5 and R = 0.5 (multiplied by the correct sizes of Identity matrices to create the covariance matrices). Try to increase and decrease the value of Q without modifying R to observe the effect of modifying the state covariance. Then do the same for R, try to increase and then decrease the value of R without modifying Q to see the effect of modifying the measurement covariance. The range for the variations of Q and R should be in the range of decimals and units. 
+
+Perform at least two variations of Q and two variations of R for only spiral motion to put in your written report (a total of 4 combinations).
+Perform the final tuning with your point controller and put the results in your written report.
+
+Follow the comments in ```localization.py``` to complete the data logging, the headers are there.
+
+These data (robot_pose.csv) will be needed for the plots to be reported in the written report. Plot estimates vs measurements. You're free to adapt the plotting script for the required plots.
+
+**Show the results of your EKF for both the spiral and the point to a TA to score half of the marks for this part.**
+
+
+## Conclusions - Written report (40 marks)
+You can do this part in the lab (time allowing) or at home. **Make sure you have the proper data saved**.
+
+Please prepare a written report containing on the front page:
+- Names (Family Name, First Name) of all group members;
+- Student ID of all group members;
+- Station number and robot number.
+
+In a maximum of 3 pages (excluding the front page), report the performance of the EKF. This report should contain the following:
+
+* Provide your understanding of the algorithm provided for the EKF and report on your derivations of the matrices, including the process model and measurement model. 
+* Results of the EKF implementation, compare the measured and estimated. Perform this comparison considering different cases of the covariance matrices as specified in Part 4. The plots should have, title, label name for the axis, legends, different shapes/colors for each line, and grids. 
+
+## Submission
+
+Submit the report and the code on Dropbox (LEARN) in the corresponding folder. Only one submission per group is needed:
+- **Report**: one single pdf;
+- **Code**: make sure to have commented your code! Submit one single zip file with everything (including the csv files obtained from the data log and the map files).
+
+
+Good luck!
