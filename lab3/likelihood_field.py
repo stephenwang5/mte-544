@@ -270,14 +270,14 @@ class map_utilities(Node):
 def laserscan_to_cartesian(laserscan):
     
     angle_min = laserscan.angle_min
+    angle_max = laserscan.angle_max
     angle_increment = laserscan.angle_increment
-    range_min = laserscan.range_min
     ranges = np.array(laserscan.ranges)
 
-    valid_indices = np.where((ranges != 0) & (ranges <= laserscan.range_max))
+    valid_indices = np.where((ranges != 0) & (ranges <= laserscan.range_max) & (ranges >= laserscan.range_min))
     valid_ranges = ranges[valid_indices]
 
-    angles = angle_min + valid_indices[0] * angle_increment
+    angles = np.arange(int(angle_max-angle_min))[valid_indices] * angle_increment + angle_min
 
     cartesian_points = np.column_stack((valid_ranges * np.cos(angles), valid_ranges * np.sin(angles)))
 
