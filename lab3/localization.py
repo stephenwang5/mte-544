@@ -25,7 +25,7 @@ odom_qos=QoSProfile(reliability=2, durability=2, history=1, depth=10)
 
 class localization(Node):
 
-    def __init__(self, type, dt, loggerName="robotPose.csv", loggerHeaders=["t", "imu_ax", "imu_ay", "odom_x", "odom_y", "kf_x", "kf_y", "kf_theta", "kf_omega", "kf_v", "kf_vdot"]):
+    def __init__(self, type, dt, loggerName="robotPose.csv", loggerHeaders=["t", "imu_ax", "imu_ay", "odom_omega", "odom_x", "odom_y", "odom_theta", "kf_x", "kf_y", "kf_theta", "kf_omega", "kf_v", "kf_vdot"]):
 
         super().__init__("localizer")
 
@@ -48,6 +48,7 @@ class localization(Node):
         # TODO Part 3: Set up the quantities for the EKF (hint: you will need the functions for the states and measurements)
 
         x= np.zeros(6)
+        # x = np.array([-0.52, -1.35, -0.8, 0, 0, 0])
 
         Q= np.eye(6)*0.5
 
@@ -58,13 +59,23 @@ class localization(Node):
         self.kf=kalman_filter(P,Q,R, x, dt)
 
         # TODO Part 3: Use the odometry and IMU data for the EKF
-        self.odom_sub=message_filters.Subscriber(self, odom, "/odom")
-        self.imu_sub=message_filters.Subscriber(self, Imu, "/imu")
+        self.odom_sub=message_filters.Subscriber(self, odom, "/odom", qos_profile=odom_qos)
+        self.imu_sub=message_filters.Subscriber(self, Imu, "/imu", qos_profile=odom_qos)
 
         time_syncher=message_filters.ApproximateTimeSynchronizer([self.odom_sub, self.imu_sub], queue_size=10, slop=0.1)
         time_syncher.registerCallback(self.fusion_callback)
 
+        self.first_time = True
+
     def fusion_callback(self, odom_msg: odom, imu_msg: Imu):
+        print(f"called kf at {self.get_clock().now()}")
+        odom_theta = euler_from_quaternion(odom_msg.pose.pose.orientation)
+        if self.first_time:
+            self.kf.x[0] = odom_msg.pose.pose.position.x
+            self.kf.x[1] = odom_msg.pose.pose.position.y
+            self.kf.x[2] = odom_theta
+            self.first_time = False
+        print(self.kf.x)
 
         # TODO Part 3: Use the EKF to perform state estimation
         # Take the measurements
@@ -75,6 +86,7 @@ class localization(Node):
         w = odom_msg.twist.twist.angular.z
         ax = imu_msg.linear_acceleration.x
         ay = imu_msg.linear_acceleration.y
+        imu_omega = imu_msg.angular_velocity.z
         z = np.array([v, w, ax, ay])
         odom_x = odom_msg.pose.pose.position.x
         odom_y = odom_msg.pose.pose.position.y
@@ -93,7 +105,7 @@ class localization(Node):
 
         # TODO Part 4: log your data
         self.loc_logger.log_values(np.concatenate(
-            ([t.nanoseconds * 1e-9, ax, ay, odom_x, odom_y], xhat)))
+            ([t.nanoseconds * 1e-9, ax, ay, w, odom_x, odom_y, odom_theta], xhat)))
 
     def odom_callback(self, pose_msg):
 

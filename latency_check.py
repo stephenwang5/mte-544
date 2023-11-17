@@ -3,8 +3,9 @@ from rclpy import init, spin, shutdown, ok, spin_once
 from rclpy.node import Node
 
 from rclpy.qos import QoSProfile
+import rclpy.qos as rqos
 
-from sensor_msgs.msg import LaserScan
+from sensor_msgs.msg import LaserScan, Imu
 from nav_msgs.msg import Odometry
 
 
@@ -92,6 +93,12 @@ def main(args=None):
     
     if topic=="/odom":
         qos_=QoSProfile(reliability=2, durability=2, history=1, depth=10)
+    elif topic == "/imu":
+        qos_ = QoSProfile(
+            reliability=rqos.QoSReliabilityPolicy.BEST_EFFORT,
+            durability=rqos.QoSDurabilityPolicy.VOLATILE,
+            depth=10
+        )
     else:
         qos_=10
     
