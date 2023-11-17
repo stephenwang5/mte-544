@@ -25,7 +25,7 @@ odom_qos=QoSProfile(reliability=2, durability=2, history=1, depth=10)
 
 class localization(Node):
 
-    def __init__(self, type, dt, loggerName="robotPose.csv", loggerHeaders=["imu_ax", "imu_ay", "kf_ax", "kf_ay","kf_vx","kf_w","x", "y","stamp"]):
+    def __init__(self, type, dt, loggerName="robotPose.csv", loggerHeaders=["t", "imu_ax", "imu_ay", "odom_x", "odom_y", "kf_x", "kf_y", "kf_theta", "kf_omega", "kf_v", "kf_vdot"]):
 
         super().__init__("localizer")
 
@@ -49,17 +49,17 @@ class localization(Node):
 
         x= np.zeros(6)
 
-        Q= np.eye(6)*0.1
+        Q= np.eye(6)*0.5
 
-        R= np.eye(4)*0.1
+        R= np.eye(4)*0.5
 
         P = np.eye(6)
 
         self.kf=kalman_filter(P,Q,R, x, dt)
 
         # TODO Part 3: Use the odometry and IMU data for the EKF
-        self.odom_sub=message_filters.Subscriber("/odom", odom)
-        self.imu_sub=message_filters.Subscriber("/imu", Imu)
+        self.odom_sub=message_filters.Subscriber(self, odom, "/odom")
+        self.imu_sub=message_filters.Subscriber(self, Imu, "/imu")
 
         time_syncher=message_filters.ApproximateTimeSynchronizer([self.odom_sub, self.imu_sub], queue_size=10, slop=0.1)
         time_syncher.registerCallback(self.fusion_callback)
@@ -71,11 +71,13 @@ class localization(Node):
         # your measurements are the linear velocity and angular velocity from odom msg
         # and linear acceleration in x and y from the imu msg
         # the kalman filter should do a proper integration to provide x,y and filter ax,ay
-        v = odom.twist.twist.linear.x
-        w = odom.twist.twist.angular.z
+        v = odom_msg.twist.twist.linear.x
+        w = odom_msg.twist.twist.angular.z
         ax = imu_msg.linear_acceleration.x
         ay = imu_msg.linear_acceleration.y
         z = np.array([v, w, ax, ay])
+        odom_x = odom_msg.pose.pose.position.x
+        odom_y = odom_msg.pose.pose.position.y
 
         # Implement the two steps for estimation
         self.kf.predict()
@@ -85,11 +87,13 @@ class localization(Node):
         xhat = self.kf.get_states()
         x, y, th, _, _, _ = xhat
 
+        t = self.get_clock().now()
         # Update the pose estimate to be returned by getPose
-        self.pose=np.array([x, y, th, Time.now().to_msg()])
+        self.pose=np.array([x, y, th, t.to_msg()])
 
         # TODO Part 4: log your data
-        self.loc_logger.log_values(xhat)
+        self.loc_logger.log_values(np.concatenate(
+            ([t.nanoseconds * 1e-9, ax, ay, odom_x, odom_y], xhat)))
 
     def odom_callback(self, pose_msg):
 
@@ -107,6 +111,6 @@ if __name__=="__main__":
 
     init()
 
-    LOCALIZER=localization()
+    LOCALIZER=localization(kalmanFilter, 0.1)
 
     spin(LOCALIZER)

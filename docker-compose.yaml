@@ -5,9 +5,10 @@ services:
       context: ./
       dockerfile: ./docker/sim.Dockerfile
     volumes:
-      - ./lab2:/home/default-user/ws/src
+      - ./lab3:/home/default-user/ws/
       - /tmp/.X11-unix:/tmp/.X11-unix
     environment:
       - DISPLAY=:1
+      - TURTLEBOT3_MODEL=burger
     runtime: nvidia
     command: /idle.bash

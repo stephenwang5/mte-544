@@ -13,6 +13,8 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ros-humble-turtlebot3*
 
+RUN apt-get install -y ros-humble-teleop-twist-keyboard
+
 COPY --chmod=755 docker/idle.bash /idle.bash
 COPY docker/.tmux.conf /home/default-user/.tmux.conf
 COPY docker/ros-env.bash /ros-env.bash
