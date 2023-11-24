@@ -6,9 +6,8 @@ img {
   display: table-cell;
   margin-left: auto;
   margin-right: auto;
-  max-height: 250px;
+  max-height: 130px;
   max-width: 100%;
-  min-width: 50%;
 }
 h1 {
   text-align: center;
@@ -17,10 +16,10 @@ h1 {
   --jp-cell-padding: 0px;
 }
 MathJax_CHTML {
-  font-size: 90%;
+  font-size: 80%;
 }
 body {
-  --jp-content-font-size1: 10pt;
+  --jp-content-font-size1: 8pt;
   --jp-code-font-size: 6pt;
   --jp-ui-font-size1: 8pt;
   --jp-content-font-family: serif;

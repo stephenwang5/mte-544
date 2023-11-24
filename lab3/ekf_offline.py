@@ -10,15 +10,10 @@ def load_csv(filename):
     setattr(sys.modules["__main__"], c, data[c].to_numpy())
   globals()["t"] -= globals()["t"][0]
 
-# preparing ekf input data
 load_csv("robotPose.line.csv")
-# odom_v = .07*t * (t<6) + .07*6 * (t>6)
-odom_v = -.0058*t**2 + .098*t
-odom_v += (np.random.random(t.shape)-.5) * .15
-odom_v[0] = 0
 
-QVAL=0.5
-RVAL=0.5
+QVAL=0.1
+RVAL=0.8
 ekf = kalman_filter(
   P=np.eye(6),
   Q=np.eye(6) * QVAL,
