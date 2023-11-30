@@ -31,9 +31,9 @@ class Node:
         return np.sum((a-b)**2)**.5
     def __sub__(self, other):
         if self.method == Node.EUCLIDEAN:
-            Node.euclidean_dist(self.position, other.position)
+            return Node.euclidean_dist(self.position, other.position)
         elif self.method == Node.MANHATTAN:
-            Node.manhattan_dist(self.position, other.position)
+            return Node.manhattan_dist(self.position, other.position)
         else:
             raise NotImplementedError("Invalid Method")
 

@@ -5,7 +5,7 @@ services:
       context: ./
       dockerfile: ./docker/sim.Dockerfile
     volumes:
-      - ./lab3:/home/default-user/ws/
+      - ./lab4:/home/default-user/ws/
       - /tmp/.X11-unix:/tmp/.X11-unix
     environment:
       - DISPLAY=:1

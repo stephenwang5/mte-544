@@ -45,7 +45,7 @@ class decision_maker(Node):
         # TODO PART 5 choose your threshold
         self.reachThreshold=0.5
 
-        self.localizer=localization(rawSensors)
+        self.localizer=localization(kalmanFilter)
 
 
         

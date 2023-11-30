@@ -13,7 +13,11 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ros-humble-turtlebot3*
 
-RUN apt-get install -y ros-humble-teleop-twist-keyboard
+RUN apt-get update && \
+    apt-get install -y ros-humble-teleop-twist-keyboard \
+    python3-pip
+
+RUN pip install scikit-learn matplotlib
 
 COPY --chmod=755 docker/idle.bash /idle.bash
 COPY docker/.tmux.conf /home/default-user/.tmux.conf
