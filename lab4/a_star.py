@@ -12,16 +12,30 @@ class Node:
         h is heuristic based estimated cost for current Node to end Node
         f is total cost of present node i.e. :  f = g + h
     """
+    MANHATTAN=0
+    EUCLIDEAN=1
 
-    def __init__(self, parent=None, position=None):
+    def __init__(self, parent=None, position=None, method=EUCLIDEAN):
         self.parent = parent
-        self.position = position
+        self.position = np.array(position)
+        self.method = method
 
         self.g = 0
         self.h = 0
         self.f = 0
     def __eq__(self, other):
-        return self.position == other.position
+        return (self.position == other.position).all()
+    def manhattan_dist(a: np.ndarray, b: np.ndarray):
+        return np.sum(a-b)
+    def euclidean_dist(a: np.ndarray, b: np.ndarray):
+        return np.sum((a-b)**2)**.5
+    def __sub__(self, other):
+        if self.method == Node.EUCLIDEAN:
+            Node.euclidean_dist(self.position, other.position)
+        elif self.method == Node.MANHATTAN:
+            Node.manhattan_dist(self.position, other.position)
+        else:
+            raise NotImplementedError("Invalid Method")
 
 #This function return the path of the search
 def return_path(current_node,maze):
@@ -60,17 +74,10 @@ def search(maze, start, end, mazeOrigin):
         :return:
     """
 
-    # TODO PART 4 Create start and end node with initized values for g, h and f
-    start_node = Node(...)
-    start_node.g = ...
-    start_node.h = ...
-    start_node.f = ...
-
+    # Nodes are initialized with 0 cost by default
+    start_node = Node(position=start)
     
-    end_node = Node(...)
-    end_node.g = ...
-    end_node.h = ...
-    end_node.f = ...
+    end_node = Node(position=end)
 
     # Initialize both yet_to_visit and visited list
     # in this list we will put all node that are yet_to_visit for exploration. 
@@ -88,16 +95,14 @@ def search(maze, start, end, mazeOrigin):
     max_iterations = (len(maze) // 2) ** 10
 
     
-    # TODO PART 4 what squares do we search . serarch movement is left-right-top-bottom 
-    #(4 movements) from every positon
-    move  =  [[...], # go up
-              [...], # go left
-              [...], # go down
-              [...], # go right
-              [...], # go up left
-              [...], # go down left
-              [...], # go up right
-              [...]] # go down right
+    move  =  [[0,1], # go up
+              [-1,0], # go left
+              [0,-1], # go down
+              [1,0], # go right
+              [-1,1], # go up left
+              [-1,-1], # go down left
+              [1,1], # go up right
+              [1,-1]] # go down right
 
 
     """
@@ -117,8 +122,7 @@ def search(maze, start, end, mazeOrigin):
                 c) if child in yet_to_visit list then ignore it
                 d) else move the child to yet_to_visit list
     """
-    # TODO PART 4 find maze has got how many rows and columns 
-    no_rows, no_columns = ...
+    no_rows, no_columns = maze.shape
     
 
     # Loop until you find the end
@@ -157,11 +161,9 @@ def search(maze, start, end, mazeOrigin):
 
         for new_position in move: 
 
-            # TODO PART 4 Get node position
-            node_position = (...)
+            node_position = new_position + current_node.position
 
-            # TODO PART 4 Make sure within range (check if within maze boundary)
-            if (...):
+            if node_position[0] >= no_columns and node_position[1] >= no_rows:
                 continue
 
             # Make sure walkable terrain
@@ -178,14 +180,12 @@ def search(maze, start, end, mazeOrigin):
         
         for child in children:
   
-            # TODO PART 4 Child is on the visited list (search entire visited list)
-            if len(...) > 0:
+            if child in visited_list:
                 continue
 
-            # TODO PART 4 Create the f, g, and h values
-            child.g = ...
+            child.g = child.parent.g + 1
             ## Heuristic costs calculated here, this is using eucledian distance
-            child.h = ...
+            child.h = end_node - child
 
             child.f = child.g + child.h
 
