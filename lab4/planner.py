@@ -28,7 +28,7 @@ class planner:
 
     def initTrajectoryPlanner(self):
 
-        self.m_utilites=mapManipulator(laser_sig=0.01)
+        self.m_utilites=mapManipulator(laser_sig=0.5)
 
         self.costMap=self.m_utilites.make_likelihood_field()
 

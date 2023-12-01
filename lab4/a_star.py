@@ -75,9 +75,9 @@ def search(maze, start, end, mazeOrigin):
     """
 
     # Nodes are initialized with 0 cost by default
-    start_node = Node(position=start)
+    start_node = Node(position=start, method=Node.EUCLIDEAN)
     
-    end_node = Node(position=end)
+    end_node = Node(position=end, method=Node.EUCLIDEAN)
 
     # Initialize both yet_to_visit and visited list
     # in this list we will put all node that are yet_to_visit for exploration. 
@@ -171,7 +171,7 @@ def search(maze, start, end, mazeOrigin):
                 continue
 
             # Create new node
-            new_node = Node(current_node, node_position)
+            new_node = Node(current_node, node_position, Node.EUCLIDEAN)
 
             # Append
             children.append(new_node)
