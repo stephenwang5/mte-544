@@ -37,7 +37,9 @@ class controller:
 
 class trajectoryController(controller):
 
-    def __init__(self, klp=0.2, klv=0.2, kli=0.2, kap=0.2, kav=0.2, kai=0.2, lookAhead=1.0, targetVel=1.0):
+    # Default vals == 0.2 for all
+    def __init__(self, klp=2.5, klv=1.0, kli=0.05, kap=2.0, kav=0.5, kai=0.01, lookAhead=1.0, targetVel=1.0):
+
         super().__init__(klp, klv, kli, kap, kav, kai)
         self.lookAhead=lookAhead
         self.targetVelocity=targetVel
