@@ -15,7 +15,8 @@ class Node:
     MANHATTAN=0
     EUCLIDEAN=1
 
-    def __init__(self, parent=None, position=None, method=EUCLIDEAN):
+    # A* currently configured for Manhattan; can be modified for Euclidean
+    def __init__(self, parent=None, position=None, method=MANHATTAN):
         self.parent = parent
         self.position = np.array(position)
         self.method = method
@@ -23,12 +24,17 @@ class Node:
         self.g = 0
         self.h = 0
         self.f = 0
+
     def __eq__(self, other):
         return (self.position == other.position).all()
+
+    # heuristic calculations
     def manhattan_dist(a: np.ndarray, b: np.ndarray):
-        return np.sum(a-b)
+        return np.sum(np.abs(a-b))
     def euclidean_dist(a: np.ndarray, b: np.ndarray):
         return np.sum((a-b)**2)**.5
+
+    # calculating heuristic cost is as simple as a-b
     def __sub__(self, other):
         if self.method == Node.EUCLIDEAN:
             return Node.euclidean_dist(self.position, other.position)
@@ -36,6 +42,10 @@ class Node:
             return Node.manhattan_dist(self.position, other.position)
         else:
             raise NotImplementedError("Invalid Method")
+
+    # pretty print for debugging
+    def __str__(self):
+        return f"node at {self.position} g {self.g} h {self.h} f {self.f}"
 
 #This function return the path of the search
 def return_path(current_node,maze):
@@ -57,7 +67,6 @@ def return_path(current_node,maze):
 
     return path
 
-
 def search(maze, start, end, mazeOrigin):
 
     print("searching ....")
@@ -75,9 +84,8 @@ def search(maze, start, end, mazeOrigin):
     """
 
     # Nodes are initialized with 0 cost by default
-    start_node = Node(position=start, method=Node.EUCLIDEAN)
-    
-    end_node = Node(position=end, method=Node.EUCLIDEAN)
+    start_node = Node(position=start)
+    end_node = Node(position=end)
 
     # Initialize both yet_to_visit and visited list
     # in this list we will put all node that are yet_to_visit for exploration. 
@@ -94,15 +102,16 @@ def search(maze, start, end, mazeOrigin):
     outer_iterations = 0
     max_iterations = (len(maze) // 2) ** 10
 
-    
+    # moves are represented as an increment to the current position
     move  =  [[0,1], # go up
               [-1,0], # go left
               [0,-1], # go down
               [1,0], # go right
-              [-1,1], # go up left
-              [-1,-1], # go down left
-              [1,1], # go up right
-              [1,-1]] # go down right
+            #   [-1,1], # go up left
+            #   [-1,-1], # go down left
+            #   [1,1], # go up right
+            #   [1,-1], # go down right
+              ]
 
 
     """
@@ -122,6 +131,7 @@ def search(maze, start, end, mazeOrigin):
                 c) if child in yet_to_visit list then ignore it
                 d) else move the child to yet_to_visit list
     """
+    # unpack the size of the occupancy grid
     no_rows, no_columns = maze.shape
     
 
@@ -140,6 +150,7 @@ def search(maze, start, end, mazeOrigin):
             if item.f < current_node.f:
                 current_node = item
                 current_index = index
+        print(current_node)
                 
         # if we hit this point return the path such as it may be no solution or 
         # computation cost is too high
@@ -161,9 +172,11 @@ def search(maze, start, end, mazeOrigin):
 
         for new_position in move: 
 
+            # calculate the neighbour based on the earlier move definition
             node_position = new_position + current_node.position
 
-            if node_position[0] >= no_columns and node_position[1] >= no_rows:
+            # skip the pixels that fall outside the occupancy grid
+            if node_position[0] >= no_columns or node_position[1] >= no_rows:
                 continue
 
             # Make sure walkable terrain
@@ -171,7 +184,7 @@ def search(maze, start, end, mazeOrigin):
                 continue
 
             # Create new node
-            new_node = Node(current_node, node_position, Node.EUCLIDEAN)
+            new_node = Node(current_node, node_position)
 
             # Append
             children.append(new_node)
@@ -180,11 +193,16 @@ def search(maze, start, end, mazeOrigin):
         
         for child in children:
   
+            # comparison used by the `in` keyword uses __eq__()
             if child in visited_list:
                 continue
 
+            # "real" cost increments by 1 from the parent
             child.g = child.parent.g + 1
+
             ## Heuristic costs calculated here, this is using eucledian distance
+            # the heuristic algo changes based on the default val in the
+            # constructor argument for Node
             child.h = end_node - child
 
             child.f = child.g + child.h
